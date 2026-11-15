@@ -1,0 +1,114 @@
+{
+  "google:*": {
+    "label": "Google Pixel (generic)",
+    "wipes_data": true,
+    "knox_void": false,
+    "notes": "Enable OEM unlocking in Developer Options first.",
+    "steps": [
+      { "action": "wait_adb", "label": "Waiting for device (enable USB debugging, authorize this PC)" },
+      { "action": "reboot_bootloader", "label": "Rebooting to bootloader" },
+      { "action": "wait_fastboot" },
+      { "action": "unlock_bootloader", "label": "Unlocking bootloader (WIPES DATA)" },
+      { "action": "manual", "label": "Magisk patch",
+        "instructions": [
+          "1. Download the factory image for this exact build from google.com/android/beta",
+          "2. Extract boot.img, copy to phone storage",
+          "3. In Magisk app on the phone: Install > Select boot.img > patch",
+          "4. Pull patched file:  adb pull /sdcard/Download/magisk_patched.img",
+          "5. Put its path in this recipe's fastboot_flash step, set auto_continue: true"
+        ] },
+      { "action": "reboot_bootloader" },
+      { "action": "wait_fastboot" },
+      { "action": "fastboot_flash", "partition": "boot", "image": "" },
+      { "action": "reboot_normal" },
+      { "action": "wait_adb" },
+      { "action": "verify_root" }
+    ]
+  },
+
+  "samsung:*": {
+    "label": "Samsung (generic - Odin required)",
+    "wipes_data": true,
+    "knox_void": true,
+    "warnings": ["Knox 0x0 -> 0x1 trips permanently. Banking apps may refuse to run."],
+    "steps": [
+      { "action": "wait_adb", "label": "Waiting for device (enable USB debugging & OEM unlock)" },
+      { "action": "manual", "label": "Unlock via Download Mode",
+        "instructions": [
+          "1. Power off. Hold VolUp+VolDown and plug USB to enter Download Mode",
+          "2. Hold VolUp ~7s to open the unlock menu, confirm (WIPES DATA)",
+          "3. Device reboots. Complete setup WITHOUT adding Google/Samsung account"
+        ] },
+      { "action": "manual", "label": "Flash Magisk-patched AP via Odin",
+        "instructions": [
+          "1. Download matching firmware (Frija/SamFirm) for the PDA build shown in Device Info",
+          "2. Extract AP_x.tar.md5, patch with Magisk (app: Select AP file)",
+          "3. Odin: flash patched AP to AP slot, BL->BL, CP->CP, HOME_CSC->CSC (keeps data; CSC wipes)",
+          "4. After boot, factory-reset ONCE via recovery (Magisk requires it on Samsung)"
+        ] },
+      { "action": "wait_adb", "label": "Waiting for boot to complete setup" },
+      { "action": "verify_root" }
+    ]
+  },
+
+  "xiaomi:*": {
+    "label": "Xiaomi / Redmi / POCO (Mi Unlock required)",
+    "wipes_data": true,
+    "knox_void": false,
+    "warnings": [
+      "Mi Unlock needs: Mi account on device, SIM with data, 168h (7 day) wait after binding.",
+      "fastboot flash is BLOCKED on Xiaomi stock - must unlock first."
+    ],
+    "steps": [
+      { "action": "wait_adb" },
+      { "action": "manual", "label": "Mi Unlock tool",
+        "instructions": [
+          "1. Bind Mi account in Developer Options > Mi Unlock status",
+          "2. Boot to fastboot (VolDown+Power), run official Mi Unlock tool, unlock (WIPES DATA)",
+          "3. Wait the required 168 hours if the tool says so - there is no shortcut",
+          "4. After unlock: flash your Magisk-patched boot.img with fastboot"
+        ] },
+      { "action": "wait_fastboot" },
+      { "action": "fastboot_flash", "partition": "boot", "image": "" },
+      { "action": "reboot_normal" },
+      { "action": "wait_adb" },
+      { "action": "verify_root" }
+    ]
+  },
+
+  "motorola:*": {
+    "label": "Motorola (unlock code from Motorola)",
+    "wipes_data": true,
+    "knox_void": false,
+    "steps": [
+      { "action": "wait_adb" },
+      { "action": "manual", "label": "Get OEM unlock code",
+        "instructions": [
+          "1. Get unlock data: fastboot oem get_unlock_data",
+          "2. Paste at motorola.com/unlockbootloader, receive unlock code by email",
+          "3. fastboot oem unlock UNIQUE_CODE (WIPES DATA)"
+        ] },
+      { "action": "wait_fastboot" },
+      { "action": "fastboot_flash", "partition": "boot", "image": "" },
+      { "action": "reboot_normal" },
+      { "action": "wait_adb" },
+      { "action": "verify_root" }
+    ]
+  },
+
+  "oneplus:*": {
+    "label": "OnePlus / Oppo / Realme",
+    "wipes_data": true,
+    "knox_void": false,
+    "steps": [
+      { "action": "wait_adb" },
+      { "action": "reboot_bootloader" },
+      { "action": "wait_fastboot" },
+      { "action": "unlock_bootloader" },
+      { "action": "fastboot_flash", "partition": "boot", "image": "" },
+      { "action": "reboot_normal" },
+      { "action": "wait_adb" },
+      { "action": "verify_root" }
+    ]
+  }
+}
